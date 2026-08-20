@@ -1,0 +1,278 @@
+@extends('layouts.app')
+
+@section('title', 'Edit Transaksi Kas')
+@section('page-title', 'Edit Transaksi Kas')
+@section('page-subtitle', 'Ubah data transaksi uang masuk atau keluar')
+
+@section('content')
+<div class="card">
+    <div class="card-body">
+        <form action="{{ route('cash-flow.update', $cashFlow) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Tipe Transaksi <span class="text-danger">*</span></label>
+                        <select name="type" id="type" class="form-control @error('type') is-invalid @enderror" required>
+                            <option value="">Pilih Tipe</option>
+                            <option value="income" {{ old('type', $cashFlow->type) == 'income' ? 'selected' : '' }}>💚 Pemasukan (Uang Masuk)</option>
+                            <option value="expense" {{ old('type', $cashFlow->type) == 'expense' ? 'selected' : '' }}>❤️ Pengeluaran (Uang Keluar)</option>
+                        </select>
+                        @error('type')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Kategori <span class="text-danger">*</span></label>
+                        <select name="category" id="category" class="form-control @error('category') is-invalid @enderror" required>
+                            <option value="">Pilih Kategori</option>
+                            <!-- Options will be populated by JS -->
+                        </select>
+                        <input type="text" name="category_new" id="category_new" class="form-control mt-2 d-none" placeholder="Ketik kategori baru..." autocomplete="off">
+
+                        <input type="hidden" id="old_category" value="{{ old('category', $cashFlow->category) }}">
+                        @error('category')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Jumlah <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="text" name="amount" id="amount" class="form-control @error('amount') is-invalid @enderror" value="{{ old('amount', number_format($cashFlow->amount, 0, ',', '.')) }}" required autocomplete="off">
+                        </div>
+                        @error('amount')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="transaction_date" class="form-label">Tanggal Transaksi <span class="text-danger">*</span></label>
+                        <input type="date" name="transaction_date" id="transaction_date" class="form-control @error('transaction_date') is-invalid @enderror" value="{{ old('transaction_date', $cashFlow->transaction_date->format('Y-m-d')) }}" required>
+                        @error('transaction_date')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Metode Pembayaran <span class="text-danger">*</span></label>
+                        <select name="payment_method" id="payment_method" class="form-control @error('payment_method') is-invalid @enderror" required>
+                            <option value="">Pilih Metode</option>
+                            <!-- Options will be populated by JS -->
+                        </select>
+                        <input type="text" name="payment_method_new" id="payment_method_new" class="form-control mt-2 d-none" placeholder="Ketik metode baru..." autocomplete="off">
+
+                        <input type="hidden" id="old_payment_method" value="{{ old('payment_method', $cashFlow->payment_method) }}">
+                        @error('payment_method')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="fund_source" class="form-label text-primary fw-bold">
+                            <i class="bi bi-wallet2"></i> Gunakan Porsi Uang <span class="text-danger">*</span>
+                        </label>
+                        <select name="fund_source" id="fund_source" class="form-select border-primary @error('fund_source') is-invalid @enderror" required>
+                            <option value="modal" {{ old('fund_source', $cashFlow->fund_source) == 'modal' ? 'selected' : '' }}>Potong/Masuk Porsi Modal (Uang Toko)</option>
+                            <option value="laba" {{ old('fund_source', $cashFlow->fund_source) == 'laba' ? 'selected' : '' }}>Potong/Masuk Porsi Laba (Penarikan Pribadi / Prive)</option>
+                        </select>
+                        <small class="text-muted">Untuk pengeluaran pribadi/jajan, pilih "Porsi Laba" agar Laba Bersih toko tidak terpotong.</small>
+                        @error('fund_source')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Deskripsi</label>
+                <textarea name="description" id="description" rows="3" class="form-control @error('description') is-invalid @enderror">{{ old('description', $cashFlow->description) }}</textarea>
+                @error('description')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+
+        <div class="row">
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="attachment" class="form-label">Bukti Transaksi</label>
+                        @if($cashFlow->attachment)
+                            <div class="mb-2">
+                                <a href="{{ asset('storage/' . $cashFlow->attachment) }}" target="_blank" class="btn btn-sm btn-info">
+                                    <i class="bi bi-file-earmark"></i> Lihat Bukti
+                                </a>
+                            </div>
+                        @endif
+                        <input type="file" name="attachment" id="attachment" class="form-control @error('attachment') is-invalid @enderror" accept=".jpg,.jpeg,.png,.pdf">
+                        @error('attachment')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Format: JPG, PNG, PDF. Maks: 2MB</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ route('cash-flow.index') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Kembali
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Update Transaksi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Dynamic select based on type selection
+    const incomeCategories = @json($incomeCategories->pluck('name'));
+    const expenseCategories = @json($expenseCategories->pluck('name'));
+
+    const categorySelect = document.getElementById('category');
+    const categoryNew = document.getElementById('category_new');
+    const oldCategory = document.getElementById('old_category').value;
+
+    document.getElementById('type').addEventListener('change', function() {
+        const type = this.value;
+
+        // Clear existing options
+        categorySelect.innerHTML = '<option value="">Pilih Kategori</option>';
+
+        let activeCategories = [];
+        if (type === 'income') {
+            activeCategories = incomeCategories;
+        } else if (type === 'expense') {
+            activeCategories = expenseCategories;
+        }
+
+        let foundOld = false;
+        // Populate select
+        activeCategories.forEach(function(cat) {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            if (cat === oldCategory) {
+                option.selected = true;
+                foundOld = true;
+            }
+            categorySelect.appendChild(option);
+        });
+
+        // Add 'Lainnya' option
+        const otherOption = document.createElement('option');
+        otherOption.value = 'Lainnya_Baru';
+        otherOption.textContent = '+ Tambah Kategori Baru...';
+        categorySelect.appendChild(otherOption);
+
+        // If old category is not found in the list but exists, select Lainnya and show input
+        if (oldCategory && !foundOld) {
+            otherOption.selected = true;
+            categoryNew.value = oldCategory;
+        }
+
+        categorySelect.dispatchEvent(new Event('change'));
+    });
+
+    categorySelect.addEventListener('change', function() {
+        if (this.value === 'Lainnya_Baru') {
+            categoryNew.classList.remove('d-none');
+            categoryNew.required = true;
+            categoryNew.name = 'category';
+            categorySelect.name = 'category_select';
+        } else {
+            categoryNew.classList.add('d-none');
+            categoryNew.required = false;
+            categoryNew.name = 'category_new';
+            categorySelect.name = 'category';
+        }
+    });
+
+    // Formatting nominal amount (Ribuan)
+    const amountInput = document.getElementById('amount');
+    amountInput.addEventListener('input', function(e) {
+        let value = this.value.replace(/[^,\d]/g, '').toString();
+        let split = value.split(',');
+        let sisa = split[0].length % 3;
+        let rupiah = split[0].substr(0, sisa);
+        let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if (ribuan) {
+            let separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
+
+        rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+        this.value = rupiah;
+    });
+
+    // Payment Methods Logic
+    const paymentMethods = @json($paymentMethods->pluck('name'));
+    const paymentSelect = document.getElementById('payment_method');
+    const paymentNew = document.getElementById('payment_method_new');
+    const oldPaymentMethod = document.getElementById('old_payment_method').value;
+
+    function initPaymentMethods() {
+        paymentSelect.innerHTML = '<option value="">Pilih Metode</option>';
+        let foundOldPayment = false;
+
+        paymentMethods.forEach(function(pm) {
+            const option = document.createElement('option');
+            option.value = pm;
+            option.textContent = pm;
+            if (pm === oldPaymentMethod) {
+                option.selected = true;
+                foundOldPayment = true;
+            }
+            paymentSelect.appendChild(option);
+        });
+
+        const otherOptionPayment = document.createElement('option');
+        otherOptionPayment.value = 'Lainnya_Baru';
+        otherOptionPayment.textContent = '+ Tambah Metode Baru...';
+        paymentSelect.appendChild(otherOptionPayment);
+
+        if (oldPaymentMethod && !foundOldPayment) {
+            otherOptionPayment.selected = true;
+            paymentNew.value = oldPaymentMethod;
+        }
+
+        paymentSelect.dispatchEvent(new Event('change'));
+    }
+
+    paymentSelect.addEventListener('change', function() {
+        if (this.value === 'Lainnya_Baru') {
+            paymentNew.classList.remove('d-none');
+            paymentNew.required = true;
+            paymentNew.name = 'payment_method';
+            paymentSelect.name = 'payment_method_select';
+        } else {
+            paymentNew.classList.add('d-none');
+            paymentNew.required = false;
+            paymentNew.name = 'payment_method_new';
+            paymentSelect.name = 'payment_method';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('type').dispatchEvent(new Event('change'));
+        initPaymentMethods();
+    });
+</script>
+@endsection

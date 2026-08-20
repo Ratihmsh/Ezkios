@@ -1,0 +1,61 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Supplier;
+use Illuminate\Database\Seeder;
+
+class SupplierSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $suppliers = [
+            [
+                'name' => 'PT. Sumber Makmur',
+                'code' => 'SM001',
+                'phone' => '021-555-1234',
+                'email' => 'info@sumbermakmur.com',
+                'address' => 'Jl. Industri Raya No. 123',
+                'city' => 'Jakarta',
+                'postal_code' => '10110',
+                'contact_person' => 'Budi Santoso',
+                'contact_person_phone' => '08123456789',
+                'notes' => 'Supplier utama untuk bahan baku',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'CV. Berkah Jaya',
+                'code' => 'BJ002',
+                'phone' => '022-456-7890',
+                'email' => 'cs@berkahjaya.com',
+                'address' => 'Jl. Pahlawan No. 45',
+                'city' => 'Bandung',
+                'postal_code' => '40231',
+                'contact_person' => 'Siti Rahayu',
+                'contact_person_phone' => '08123456780',
+                'notes' => 'Supplier elektronik dan gadget',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'UD. Jaya Abadi',
+                'code' => 'JA003',
+                'phone' => '031-789-0123',
+                'email' => 'admin@jayaabadi.co.id',
+                'address' => 'Jl. Kenangan No. 78',
+                'city' => 'Surabaya',
+                'postal_code' => '60241',
+                'contact_person' => 'Ahmad Hidayat',
+                'contact_person_phone' => '08123456781',
+                'notes' => 'Supplier fashion dan aksesoris',
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($suppliers as $supplier) {
+            Supplier::create($supplier);
+        }
+    }
+}
